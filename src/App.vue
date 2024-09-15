@@ -294,4 +294,29 @@ button:hover {
 .logo {
   object-fit: contain;
 }
+@media screen and (max-width: 645px) {
+  .wrapper {
+    border-radius: 0;
+    width: 100%;
+    max-width: initial;
+  }
+}
+@media screen and (max-width: 480px) {
+  .wrapper {
+    height: initial;
+    max-height: initial;
+    max-width: initial;
+  } 
+}
+@media screen and (max-width: 480px) {
+  .header{
+    flex-direction: column-reverse;
+    gap: 25px;
+    align-items: center;
+  }
+  .logo{
+    width: 50%;
+  }
+}
+
 </style>
