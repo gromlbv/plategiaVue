@@ -81,16 +81,15 @@ export default {
   methods: {
     async initialize() {
       try {
-        // Получение данных из API
-        const response = await fetch("http://185.18.52.13/api/transaction/{id}");
+        const response = await fetch("http://185.18.52.13:5000/api/transaction/{id}");
         if (!response.ok) throw new Error('Network response was not ok');
         
         const data = await response.json();
+        //const timer = data.transaction.expiredAt;
         const data_bank = data.transaction.selectedProvider.method;
         const summStatus = data.transaction.pricing.local.amount;
         const cardStatus = data.requisite.maskedAccountNumber;
 
-        // Устанавливаем статус банка и отображение логотипов
         if (data_bank === "sberbank") {
           this.bankStatus = "Сбербанк";
           this.showSberLogo = true;
@@ -311,7 +310,7 @@ button:hover {
 @media screen and (max-width: 480px) {
   .header{
     flex-direction: column-reverse;
-    gap: 25px;
+    gap: 15px;
     align-items: center;
   }
   .logo{
