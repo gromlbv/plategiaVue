@@ -176,16 +176,24 @@ export default {
           this.operationStatus = "Оплата подтверждена"
           windowPayment = 2;
           clearInterval(this.statusCheckInterval);
+        } else if (operationStatus === "IN_PROGRESS") {
+          this.operationStatus = "Ожидает подтверждения"
+          windowPayment = 2;
+          clearInterval(this.statusCheckInterval);
         } else if (operationStatus === "EXPIRED") {
           this.operationStatus = "Время оплаты истекло"
           windowPayment = 2;
           clearInterval(this.statusCheckInterval);
         } else if (operationStatus === "PAID") {
-          this.operationStatus = "Успешно оплачено"
+          this.operationStatus = "Оплата прошла успешно"
+          windowPayment = 2;
+          clearInterval(this.statusCheckInterval);
+        } else if (operationStatus === "FAILED") {
+          this.operationStatus = "Ошибка оплаты"
           windowPayment = 2;
           clearInterval(this.statusCheckInterval);
         } else if (operationStatus === "CANCEL") {
-          this.operationStatus = "Ошибка оплаты!";
+          this.operationStatus = "Оплата отменена";
           windowPayment = 2;
           clearInterval(this.statusCheckInterval);
         } else {
