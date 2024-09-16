@@ -59,14 +59,35 @@
       <button class="submit" @click="confirmPayment">Я оплатил</button>
     </div>
   </div>
+  
+  <div class="wrapper wait">
+    <div class="header">
+      <img class="logo" src="./assets/logo.png" alt="platega.io" />
+    </div>
+    <div class="middle">
+      <h1 class="paymentActionH1">{{ operationStatus }}</h1>
+    </div>
+    <div class="footer">
+      <div class="text-wrapper">
+        Проверьте что перевели точную сумму, иначе мы не сможем зачислить
+        перевод
+      </div>
+      <button class="submit paymentAction" @click="confirmPayment">Вернуться к платежу</button>
+    </div>
+  </div>
 </template>
 
 <script>
 import ("./main.js")
+var windowPayment = 0;
+const url = window.location.href;
+const id = url.split("/").slice(-1)[0];
+console.log(id);
 export default {
   data() {
     return {
-      timer: "15",
+      timer: "-",
+      operationStatus: "Проверяем поступление средств...",
       bankStatus: "Определяю...",
       summStatus: "Считаю...",
       cardStatus: "Проверяю номер...",
@@ -81,14 +102,38 @@ export default {
   methods: {
     async initialize() {
       try {
-        const response = await fetch("http://185.18.52.13:5000/api/transaction/{id}");
+        
+        const response = await fetch("http://185.18.52.13:5000/api/transaction/"+id);
         if (!response.ok) throw new Error('Network response was not ok');
         
         const data = await response.json();
-        //const timer = data.transaction.expiredAt;
-        const data_bank = data.transaction.selectedProvider.method;
-        const summStatus = data.transaction.pricing.local.amount;
-        const cardStatus = data.requisite.maskedAccountNumber;
+        const data_bank = data.data.transaction.selectedProvider.method;
+        const summStatus = data.data.transaction.pricing.local.amount;
+        const cardStatus = data.data.requisite.maskedAccountNumber;
+        const initialDateStr = data.data.transaction.created_data;
+        
+
+        let date = new Date(initialDateStr);
+              
+        date.setMinutes(date.getMinutes() + 15);
+              
+        const self = this;
+
+        function countdown() {
+          const now = new Date();
+          const timeLeft = date - now;
+
+          if (timeLeft <= 0) {
+            clearInterval(timerSet);
+            self.timer = "Не осталось";
+          } else {
+            const minutes = Math.floor(timeLeft / (1000 * 60));
+            self.timer = `${minutes}`;
+          }
+        }
+
+        const timerSet = setInterval(countdown, 1000);
+
 
         if (data_bank === "sberbank") {
           this.bankStatus = "Сбербанк";
@@ -104,10 +149,9 @@ export default {
         } else {
           this.bankStatus = "Банк неизвестен";
         }
-
-        // Устанавливаем оставшиеся данные
         this.summStatus = summStatus;
         this.cardStatus = cardStatus;
+        
 
       } catch (error) {
         console.error("Ошибка при загрузке данных:", error);
@@ -116,6 +160,67 @@ export default {
         this.cardStatus = "Ошибка загрузки";
       }
     },
+
+    
+    async checkPaymentStatus() {
+      try {
+        const response = await fetch("http://185.18.52.13:5000/api/transaction/"+id);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        const operationStatus = data.data.transaction.status;
+        console.log(operationStatus)
+        if (operationStatus === "PENDING") {
+          this.operationStatus = "Проверяем поступление средств..."
+        } else if (operationStatus === "CONFIRMED") {
+          this.operationStatus = "Оплата подтверждена"
+          windowPayment = 2;
+          clearInterval(this.statusCheckInterval);
+        } else if (operationStatus === "PAID") {
+          this.operationStatus = "Успешно оплачено"
+          windowPayment = 2;
+          clearInterval(this.statusCheckInterval);
+        } else if (operationStatus === "CANCEL") {
+          this.operationStatus = "Ошибка оплаты!";
+          windowPayment = 2;
+          clearInterval(this.statusCheckInterval);
+        } else {
+          this.operationStatus = "Неизвестный ответ сервера";
+        }
+        
+      } catch (error) {
+        console.error("Ошибка при проверке статуса операции:", error);
+      }
+    },
+
+    confirmPayment() {
+
+      if (windowPayment == 0){
+        document.querySelector(".wrapper").style.display = "none"
+        document.querySelector(".wrapper.wait").style.display = "flex"
+        windowPayment = 1;
+      }
+      else if (windowPayment == 1){
+        document.querySelector(".wrapper").style.display = "flex"
+        document.querySelector(".wrapper.wait").style.display = "none"
+        windowPayment = 0;
+      }
+      // ЗДЕСЬ БУДЕТ ССЫЛКА НА ВОЗВРАТ НА СТРАНИЦУ КУДА БЫЛ ПЛАТЕЖ
+      //else if (windowPayment == 2){
+      //  console.log("Возвращен на страницу")
+      //  document.querySelector(".wrapper").style.display = "none"
+      //  document.querySelector(".wrapper.wait").style.display = "none"
+      //}
+      
+      
+      
+      // Каждую секунду проверять статус оплаты
+      this.statusCheckInterval = setInterval(this.checkPaymentStatus, 1000);
+    }
+  },
+  beforeDestroy() {
+    // Убираем интервал при уничтожении компонента
+    clearInterval(this.statusCheckInterval);
+  },
     copyRuble() {
       this.copyToClipboard(this.summStatus);
     },
@@ -128,10 +233,10 @@ export default {
     copyToClipboard(message) {
       navigator.clipboard.writeText(message);
     }
+    
   }
-};
-</script>
 
+</script>
 
 <style scoped>
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
@@ -157,9 +262,10 @@ body {
   height: 730px;
   border-radius: 45px;
 }
-
 .wrapper.wait {
   max-height: 550px;
+  gap: 25px;
+  display: none;
 }
 
 .header {
@@ -294,27 +400,37 @@ button:hover {
   object-fit: contain;
 }
 @media screen and (max-width: 645px) {
+  
   .wrapper {
-    border-radius: 0;
+    margin: 0 25px;
+    border-radius: 15;
     width: 100%;
     max-width: initial;
   }
 }
-@media screen and (max-width: 480px) {
+@media screen and (max-width: 520px) {
+  h1{
+    font-size: 24px;
+  }
+  .block{
+    font-size: 18px;
+  }
+  .text-wrapper{
+    font-size: 16px;
+  }
   .wrapper {
     height: initial;
     max-height: initial;
     max-width: initial;
+    gap: 25px;
   } 
-}
-@media screen and (max-width: 480px) {
   .header{
     flex-direction: column-reverse;
-    gap: 15px;
+    gap: 25px;
     align-items: center;
   }
   .logo{
-    width: 50%;
+    width: 70%;
   }
 }
 
