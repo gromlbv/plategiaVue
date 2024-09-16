@@ -1,4 +1,5 @@
 <template>
+  <img class="logo top" src="./assets/logo.png" alt="platega.io"/>
   <div class="wrapper">
     <div class="header">
       <img class="logo" src="./assets/logo.png" alt="platega.io" />
@@ -175,6 +176,10 @@ export default {
           this.operationStatus = "Оплата подтверждена"
           windowPayment = 2;
           clearInterval(this.statusCheckInterval);
+        } else if (operationStatus === "EXPIRED") {
+          this.operationStatus = "Время оплаты истекло"
+          windowPayment = 2;
+          clearInterval(this.statusCheckInterval);
         } else if (operationStatus === "PAID") {
           this.operationStatus = "Успешно оплачено"
           windowPayment = 2;
@@ -184,7 +189,7 @@ export default {
           windowPayment = 2;
           clearInterval(this.statusCheckInterval);
         } else {
-          this.operationStatus = "Неизвестный ответ сервера";
+          this.operationStatus = operationStatus;
         }
         
       } catch (error) {
@@ -243,12 +248,11 @@ export default {
 
 body {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
   height: 100vh;
-  margin: 0;
-  padding: 0;
   font-family: "Inter", sans-serif;
   background: var(--color-background);
 }
@@ -272,6 +276,7 @@ body {
   display: flex;
   justify-content: space-between;
   width: 100%;
+  gap:15px;
 }
 
 .middle {
@@ -395,12 +400,13 @@ button:hover {
   text-align: center;
   cursor: pointer;
 }
-
+.logo.top{
+  display: none;
+}
 .logo {
   object-fit: contain;
 }
 @media screen and (max-width: 645px) {
-  
   .wrapper {
     margin: 0 25px;
     border-radius: 15;
@@ -409,28 +415,39 @@ button:hover {
   }
 }
 @media screen and (max-width: 520px) {
+  .wrapper.wait > .header{
+    display: none;
+  }
+  .logo{
+    display: none;
+  }
+  .logo.top{
+    display: initial;
+  }
   h1{
     font-size: 24px;
   }
   .block{
     font-size: 18px;
+    text-size-adjust: 80%;
   }
   .text-wrapper{
     font-size: 16px;
+    padding: 0;
   }
   .wrapper {
     height: initial;
     max-height: initial;
     max-width: initial;
-    gap: 25px;
+    gap: 35px;
   } 
   .header{
     flex-direction: column-reverse;
     gap: 25px;
     align-items: center;
   }
-  .logo{
-    width: 70%;
+  .footer{
+    gap: 15px;
   }
 }
 
