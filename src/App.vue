@@ -146,7 +146,7 @@ export default {
           this.bankStatus = "Альфа";
           this.showAlphaLogo = true;
         } else if (data_bank === "ALL") {
-          this.bankStatus = "ALL";
+          this.bankStatus = "Любой банк";
         } else {
           this.bankStatus = "Банк неизвестен";
         }
