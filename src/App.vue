@@ -82,7 +82,11 @@
 import ("./main.js")
 var windowPayment = 0;
 const url = window.location.href;
-const id = url.split("/").slice(-1)[0];
+let segments = url.split('/');
+if (segments[segments.length - 1] === '') {
+  segments.pop();
+}
+const id = segments[segments.length - 1];
 console.log(id);
 export default {
   data() {
@@ -347,7 +351,7 @@ h1 {
 }
 
 .copy-btn {
-  cursor: copy;
+  cursor: pointer;
 }
 
 .number {
