@@ -169,7 +169,7 @@ export default {
     
     async checkPaymentStatus() {
       try {
-        const response = await fetch("http://185.18.52.13:5000/api/transaction/"+id);
+        const response = await fetch("https://185.18.52.13:5000/api/transaction/"+id);
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         const operationStatus = data.data.transaction.status;
